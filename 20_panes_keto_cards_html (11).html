@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>20 Panes Keto – Recetario con Tarjetas</title>
+  <style>
+    :root{
+      --bg:#f7e3c6;          /* crema cálido */
+      --ink:#2d2a26;         /* café oscuro */
+      --brand:#ff8c42;       /* naranja */
+      --brand-2:#ffc76a;     /* amarillo suave */
+      --accent:#68b684;      /* verde suave para etiquetas keto */
+      --muted:#8a847c;       /* gris tostado */
+      --card:#ffffff;        /* blanco puro */
+      --shadow:0 6px 20px rgba(0,0,0,.08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      color:var(--ink); background:linear-gradient(180deg,var(--bg),#fff);
+    }
+    header{
+      position:sticky; top:0; z-index:20; backdrop-filter: blur(6px);
+      background: rgba(255,250,243,.8); border-bottom:1px solid #f1e8da;
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:18px 16px}
+    h1{margin:6px 0 2px; font-size: clamp(22px, 3.2vw, 34px); letter-spacing:.2px}
+    .sub{color:#111; font-size:17px; text-align:center; margin-top:8px}
+    .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    .pill{border:1px solid #f2e3cc; background:#fff7e5; color:#5a4c3a; padding:10px 12px; border-radius:999px; font-size:13px; cursor:pointer}
+    .pill.active{background:var(--brand); color:#fff; border-color:var(--brand)}
+    .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:#fff; border:1px solid #f0e6d7; border-radius:999px; padding:6px 12px}
+    .search input{border:0; outline:0; flex:1; font-size:14px; padding:8px 2px; background:transparent}
+    .grid{display:grid; grid-template-columns: repeat( auto-fit, minmax(260px,1fr) ); gap:18px; padding:22px 16px 38px}
+    .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid #f2e9db; display:flex; flex-direction:column}
+    .card .cover{height:130px; border-top-left-radius:var(--radius); border-top-right-radius:var(--radius); background: linear-gradient(135deg, var(--brand-2), var(--brand)); position:relative; overflow:hidden}
+    .card .badge{position:absolute; top:10px; left:10px; background:#00000014; color:#fff; font-weight:600; padding:6px 10px; border-radius:999px; font-size:12px}
+    .card .content{padding:14px 14px 16px}
+    .title{font-size:18px; line-height:1.25; margin:0 0 8px}
+    .tags{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 10px}
+    .tag{background:#eef9f1; color:#1f6a44; border:1px solid #d9f0e0; padding:4px 8px; border-radius:999px; font-size:12px}
+    .macros{display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 12px}
+    .chip{background:#fff7ea; border:1px solid #f2e3cc; color:#5a4c3a; padding:4px 8px; border-radius:8px; font-size:12px}
+    .btns{display:flex; gap:10px; margin-top:auto}
+    .btn{flex:1; background:var(--brand); color:#fff; border:0; padding:10px 12px; border-radius:10px; font-weight:600; cursor:pointer}
+    .btn.outline{background:#fff; color:#5a4c3a; border:1px solid #f0e2ca}
+    footer{padding:24px 16px; background:#fff6e7; color:#6c5a45; border-top:1px solid #f1e8da}
+    .small{font-size:12.5px; color:#7b6a57}
+    /* Modal */
+    dialog{width:min(780px, 92vw); border:0; border-radius:20px; padding:0; box-shadow:var(--shadow)}
+    .modal-head{padding:16px 18px; background:linear-gradient(135deg, var(--brand-2), var(--brand)); color:#1b1107; font-weight:700; border-top-left-radius:20px; border-top-right-radius:20px}
+    .modal-content{padding:18px}
+    .cols{display:grid; grid-template-columns: 1.2fr 1.8fr; gap:18px}
+    .cols h4{margin:8px 0}
+    .list{margin:0; padding-left:18px}
+    .list li{margin:6px 0}
+    .tips{background:#fff7ea; border:1px dashed #f0e2ca; padding:10px 12px; border-radius:12px; color:#5a4c3a}
+    .modal-foot{display:flex; justify-content:flex-end; gap:10px; padding:16px 18px}
+    .close{background:#fff; border:1px solid #eedfc7; padding:10px 14px; border-radius:10px; cursor:pointer}
+    .ok{background:var(--brand); color:#fff; border:0; padding:10px 14px; border-radius:10px; cursor:pointer}
+    @media (max-width: 720px){ .cols{grid-template-columns:1fr} }
+    
+    /* Print styles */
+    @media print{
+      header,.fab-search,.btns{display:none !important}
+      body{background:#fff !important}
+      .grid{grid-template-columns:1fr !important; gap:10px}
+      .card{box-shadow:none; border:1px solid #ddd; break-inside: avoid; page-break-inside: avoid}
+      .cover{height:90px; -webkit-print-color-adjust: exact; print-color-adjust: exact}
+      .macros .chip{border-color:#bbb}
+    }
+    /* Header chips */
+    .hchips{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+    .hchip{background:#fff7e5; border:1px solid #f2e3cc; color:#5a4c3a; padding:6px 10px; border-radius:999px; font-size:12.5px}
+    /* Header aesthetics */
+    header{ background-image: none !important; }
+    .brand{display:flex; align-items:center; gap:12px; margin-top:6px}
+    .logo{width:48px; height:48px; border-radius:12px; background:#fff7e5; border:1px solid #f2e3cc; object-fit:contain}
+    .title-wrap{display:flex; flex-direction:column}
+    .headline{margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif; font-style: normal; font-weight: 800; color:#5a3d2b; font-size: clamp(26px, 4vw, 40px); letter-spacing:.2px}
+    .subtitle{margin-top:2px; color:#7b5a3a; font-weight:600}
+    /* Center header content (desktop + mobile) */
+    header .wrap{ display:flex; flex-direction:column; align-items:center; text-align:center; }
+    header .toolbar{ justify-content:center; }
+    .brand{ justify-content:center; }
+    /* Guide CTA */
+    .guide-cta{ display:flex; justify-content:center; margin-top:10px }
+
+    /* Guide dialog */
+    #guideDlg{ width:min(920px,94vw); max-height:86vh; border:0; border-radius:18px; padding:0; box-shadow:var(--shadow) }
+    #guideDlg::backdrop{ background:rgba(0,0,0,.25) }
+    .g-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; background:#fff3e2; border-bottom:1px solid #f0e2ca; border-top-left-radius:18px; border-top-right-radius:18px }
+    .g-head h3{ margin:0; font-size:18px }
+    .g-body{ padding:16px; overflow:auto; max-height:calc(86vh - 110px) }
+    .g-body h4{ margin:14px 0 6px }
+    .g-body p{ margin:8px 0; color:#574b3d }
+    .g-body ul{ margin:6px 0 10px 18px }
+    .g-body li{ margin:4px 0 }
+    .g-table{ width:100%; border-collapse:separate; border-spacing:0; margin:8px 0 12px }
+    .g-table th,.g-table td{ text-align:left; padding:10px 12px; border:1px solid #ecdcc5 }
+    .g-table th{ background:#fff7e5 }
+    .g-foot{ display:flex; justify-content:flex-end; gap:10px; padding:12px 16px; border-top:1px solid #f0e2ca }
+    .btn-ghost{ background:#fff; border:1px solid #eedfc7; padding:10px 12px; border-radius:10px; cursor:pointer }
+    .btn-solid{ background:var(--brand); color:#fff; border:0; padding:10px 12px; border-radius:10px; cursor:pointer }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+      <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Keto Air Fryer 360°">
+  <rect rx="12" ry="12" width="100" height="100" fill="#fff7e5" stroke="#f2e3cc"/>
+  <text x="50" y="34" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="28" fill="#ff2e92">KETO</text>
+  <text x="50" y="56" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="14" fill="#222" opacity="0.9">AIR FRYER</text>
+  <text x="50" y="82" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="26" fill="#a3e635">360°</text>
+</svg>
+      <div class="title-wrap">
+        <h1 class="headline">20 panes Keto</h1>
+        <div class="subtitle">ricos, fáciles y sin culpa</div>
+      </div>
+    </div>
+      <div class="sub">Selección curada con recetas queridas por la comunidad</div>
+      <div class="guide-cta"><button id="btnGuide" class="pill">📘 Fundamentos &amp; Guía</button></div>
+      
+      
+    </div>
+  </header>
+
+  <main class="grid" id="grid"></main>
+
+  <footer>
+    <div class="wrap small">
+      <strong>Nota:</strong> los macros son aproximados por porción y pueden variar por marcas/medidas. Ajusta con tu calculadora si necesitas precisión para tu plan diario. 
+    </div>
+  </footer>
+
+  <!-- Modal base -->
+  <dialog id="modal">
+    <div class="modal-head" id="m-title">Título receta</div>
+    <div class="modal-content">
+      <div class="cols">
+        <div>
+          <h4>Ingredientes</h4>
+          <ul class="list" id="m-ings"></ul>
+          <h4>Macros aprox. (por porción)</h4>
+          <div id="m-macros" class="macros"></div>
+        </div>
+        <div>
+          <h4>Instrucciones</h4>
+          <ol class="list" id="m-steps"></ol>
+          <div class="tips" id="m-tips"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="close" onclick="modal.close()">Cerrar</button>
+    </div>
+  </dialog>
+
+  <!-- Guía de Fundamentos: template + dialog -->
+  <template id="guideTpl">
+    <article class="guide">
+      <p><strong>Objetivo:</strong> ayudarte a dominar panes bajos en carbohidratos con buena miga, usando ingredientes keto y técnicas que funcionan.</p>
+
+      <h4>1) Principios keto para panificados</h4>
+      <ul>
+        <li><strong>Carbohidratos netos día:</strong> 20–50 g. En panes, prioriza <em>netos por porción</em> ≤ 3–4 g.</li>
+        <li><strong>Grasas saludables:</strong> mantequilla/ghee, aceite de oliva o coco; lácteos enteros sin azúcar.</li>
+        <li><strong>Proteína moderada:</strong> huevo, quesos, aislado de suero (whey) para estructura.</li>
+      </ul>
+
+      <h4>2) Harinas y fibras (cuándo usar cada una)</h4>
+      <table class="g-table">
+        <tr><th>Ingrediente</th><th>Rol</th><th>Tips</th></tr>
+        <tr><td>Harina de almendra</td><td>Base amable, miga tierna</td><td>Absorbe poco; combina con <em>psyllium</em> (2–6% del total) o 1–2 cdas de <em>whey</em>.</td></tr>
+        <tr><td>Harina de coco</td><td>Muy absorbente, aporta densidad</td><td>Usa 1/3 de la cantidad de almendra. Necesita más líquido y huevo.</td></tr>
+        <tr><td>Linaza dorada</td><td>Fibra + sabor integral</td><td>Muele fina; agrega agua caliente y 1 cda vinagre para suavizar sabor.</td></tr>
+        <tr><td>Harina de girasol</td><td>Alternativa <em>sin frutos secos</em></td><td>Sustituye 1:1 a almendra; añade ácido (limón/vinagre) para evitar tono verde.</td></tr>
+        <tr><td>Psyllium</td><td>Elasticidad y humedad</td><td>Mejor <em>molido fino</em>; algunas marcas tiñen morado.</td></tr>
+        <tr><td>Oat fiber</td><td>Fibra insoluble 0 netos</td><td>No es harina de avena. Aporta cuerpo sin sumar carbs.</td></tr>
+        <tr><td>Whey (aislado)</td><td>Estructura y “chew”</td><td>5–10% del peso de harinas; en exceso reseca.</td></tr>
+      </table>
+
+      <h4>3) Leudantes y levadura</h4>
+      <ul>
+        <li><strong>Polvo de hornear</strong> o <strong>bicarbonato + ácido</strong> (limón/vinagre) para panes rápidos.</li>
+        <li><strong>Levadura</strong>: actívala con agua tibia (40–43 °C) y 1 cdta de inulina o una pizca de miel. El azúcar se consume en el levado.</li>
+      </ul>
+
+      <h4>4) Sustituciones rápidas</h4>
+      <table class="g-table">
+        <tr><th>Si la receta pide…</th><th>Usa…</th><th>Cómo ajustar</th></tr>
+        <tr><td>Almendra</td><td>Girasol 1:1</td><td>+ 1 cdta de jugo de limón/vinagre</td></tr>
+        <tr><td>Almendra</td><td>Coco (1/3 de la cantidad)</td><td>+ 1–2 huevos/claras y + 2–4 cdas de líquido</td></tr>
+        <tr><td>Psyllium escaso</td><td>+ Whey (5–10%)</td><td>Mejora miga y rebanado</td></tr>
+        <tr><td>Sin lácteos</td><td>Aceite de coco/oliva</td><td>Reemplaza mantequilla 1:1</td></tr>
+      </table>
+
+      <h4>5) Solución de fallos comunes</h4>
+      <ul>
+        <li><strong>Miga húmeda/densa:</strong> pesa ingredientes, hornea 3–5 min extra, deja enfriar completamente.</li>
+        <li><strong>Sabor a huevo:</strong> usa claras extra, añade especias (ajo/romero) o tosta antes de comer.</li>
+        <li><strong>Color morado:</strong> cambia de marca de psyllium.</li>
+        <li><strong>Pan verde (girasol):</strong> añade ácido (limón/vinagre) y usa polvo de hornear en lugar de bicarbonato solo.</li>
+      </ul>
+
+      <h4>6) Horno ⇄ Air Fryer (cómo adaptar)</h4>
+      <ul>
+        <li><strong>Precalienta</strong> la air fryer 3 min.</li>
+        <li><strong>Baja 10–20 °C</strong> respecto a horno y revisa al <strong>70%</strong> del tiempo.</li>
+        <li>Prefiere <strong>mini-moldes o bollos</strong>; cocción más pareja.</li>
+        <li>Si dora rápido, <strong>cubre con foil</strong> suelto.</li>
+        <li>Interno de panes con levadura: <strong>94–96 °C</strong>.</li>
+      </ul>
+
+      <h4>7) Almacenamiento</h4>
+      <ul>
+        <li>Enfriar completamente, rebanar, <strong>refrigerar 3–4 días</strong> o <strong>congelar 2–3 meses</strong>.</li>
+        <li>Tostar directo desde congelado para mejor textura.</li>
+      </ul>
+
+      <h4>8) Net carbs: fórmula</h4>
+      <p><strong>Carbs netos = Carbs totales − Fibra − Polialcoholes (eritritol).</strong> Ej.: 9 g totales − 5 g fibra − 3 g eritritol = <strong>1 g neto</strong>.</p>
+    </article>
+  </template>
+
+  <dialog id="guideDlg">
+    <div class="g-head">
+      <h3>Fundamentos &amp; Guía de Panes Keto</h3>
+      <div>
+        <button class="btn-ghost" id="gClose">Cerrar</button>
+        <button class="btn-solid" id="gPrint">Imprimir Guía</button>
+      </div>
+    </div>
+    <div class="g-body" id="guideBody"></div>
+    <div class="g-foot">
+      <small class="small">Consejos prácticos para adaptar y mejorar tus panes keto.</small>
+    </div>
+  </dialog>
+  <script>
+  // === DATASET (20 RECETAS) ===
+  const RECIPES = [
+    /* === WOW x4 (del mensaje previo) === */
+    {
+      id:'wow-levadura-gnom', cat:'buns', title:'Pan keto con levadura (no eggy)', subtitle:'Tipo sándwich', cover:'',
+      tags:['levadura','miga suave','alto en proteína'],
+      macros:{net:2, prot:6, fat:7, kcal:100, unit:'rebanada (1/10)'},
+      src:'https://www.gnom-gnom.com/gluten-free-paleo-keto-bread/',
+      ings:[
+        '2 cdta levadura seca + 120 ml agua tibia + 1 cdta inulina/jugo de manzana (para activar)',
+        '168 g harina de almendra', '83 g linaza dorada molida fina', '18 g psyllium fino',
+        '15 g aislado de suero (whey)', '2 cdta goma xantana', '2 cdta polvo de hornear', '1 cdta sal',
+        '1 huevo + 110 g claras', '56 g mantequilla derretida', '1 cda vinagre', '58 g crema agria (o crema de coco + 2 cdta vinagre)'
+      ],
+      steps:[
+        'Activa la levadura con agua tibia y inulina 7–10 min.',
+        'Mezcla secos. Incorpora huevo, claras, mantequilla y vinagre; alterna con crema hasta masa espesa.',
+        'Moldea en mini-loaf o bollos; dejar levar 45–60 min en sitio tibio.',
+        'Horno 170 °C 35–45 min (bollos 22–26). Enfriar por completo antes de cortar.'
+      ],
+      tips:'Pesa ingredientes. Si dora rápido, cubre con foil. La levadura consume el “azúcar” del activado.'
+    },
+    {
+      id:'wow-dd-bollos', cat:'buns', title:'Bollos de psyllium (Diet Doctor)', subtitle:'Firmes y versátiles', cover:'',
+      tags:['psyllium','clásico','muy reseñado'],
+      macros:{net:2, prot:7, fat:6, kcal:110, unit:'bollo (1/6)'},
+      src:'https://www.dietdoctor.com/recipes/the-keto-bread',
+      ings:[
+        '140 g harina de almendra', '50 g psyllium molido fino', '2 cdta polvo de hornear', '1 cdta sal',
+        '240 ml agua hirviendo', '2 cdta vinagre', '3 claras L', 'Semillas opcionales'
+      ],
+      steps:[
+        'Mezcla secos y sal.',
+        'Agrega vinagre y claras; vierte AGUA HIRVIENDO batiendo 30 s (masa tipo plastilina).',
+        'Forma 6 bollos; hornea 160–170 °C 12–18 min (sonido hueco en base).'
+      ],
+      tips:'Si tu psyllium tiñe morado, cambia de marca. Para versión coco: 1/3 de harina y duplica claras.'
+    },
+    {
+      id:'wow-wy-5ing', cat:'buns', title:'Pan 5 ingredientes (Wholesome Yum)', subtitle:'Súper aireado', cover:'',
+      tags:['claras a punto','1 g neto','muy popular'],
+      macros:{net:1, prot:3, fat:5, kcal:60, unit:'rebanada fina'},
+      src:'https://www.wholesomeyum.com/recipes/the-best-keto-bread-recipe/',
+      ings:[
+        '1 taza harina de almendra', '1/4 taza harina de coco', '2 cdta polvo hornear', '1/4 cdta sal',
+        '1/3 taza mantequilla derretida (o aceite de coco)', '12 claras L',
+        'Opcional: 1 cda endulzante, 1/4 cdta xantana, 1/4 cdta cremor'
+      ],
+      steps:[
+        'Mezcla secos + grasa.',
+        'Bate claras a picos firmes y une en 3 tandas, con movimientos envolventes.',
+        'Molde; hornea 150–160 °C 40–60 min. Enfriar completamente antes de cortar.'
+      ],
+      tips:'Si usas claras de cartón, añade cremor. No sobremezclar para no perder aire.'
+    },
+    {
+      id:'wow-nutfree-dd', cat:'buns', title:'Pan sin frutos secos (oat fiber)', subtitle:'1 g neto', cover:'',
+      tags:['sin nueces','oat fiber','tostar mejora'],
+      macros:{net:1, prot:7, fat:8, kcal:120, unit:'porción (1/20)'},
+      src:'https://www.dietdoctor.com/recipes/keto-bread',
+      ings:[
+        '55 g oat fiber (fibra de avena, no harina)', '6 huevos', '325 g queso rallado', '28 g queso crema',
+        '2 cdas psyllium', '3 cdta polvo de hornear', '1 cda mantequilla', '1/2 cdta sal'
+      ],
+      steps:[
+        'Bate huevos y mezcla con quesos.',
+        'Incorpora secos hasta masa espesa; vierte en molde.',
+        'Horno 160–170 °C 25–35 min. Enfriar y tostar para textura top.'
+      ],
+      tips:'Usa “oat fiber” (fibra pura). Tostar intensifica sabor y miga.'
+    },
+
+    /* === 14 adicionales (del mensaje previo) === */
+    {
+      id:'bagels-fathead', cat:'buns', title:'Bagels keto (base Fathead)', subtitle:'5–6 piezas',
+      tags:['bagel','rápido','clásico'],
+      macros:{net:5, prot:13, fat:20, kcal:250, unit:'bagel'},
+      src:'https://www.wholesomeyum.com/keto-low-carb-bagels-recipe-with-fathead-dough-gluten-free/ ',
+      ings:['170 g mozzarella','56 g queso crema','140 g harina de almendra','2 huevos L','2 cdta polvo de hornear','1/2 cdta sal','Semillas c/s'],
+      steps:['Funde quesos y mezcla con secos.','Añade huevos y amasa.','Forma aros, pinta y hornea 200 °C 12–15 min.'],
+      tips:'Para más “chew”, agrega 1/4 cdta xantana.'
+    },
+    {
+      id:'soft-rolls-kc', cat:'buns', title:'Rolls ultra suaves (KetoConnect)', subtitle:'1 g neto',
+      tags:['harina de coco','psyllium','suaves'],
+      macros:{net:1, prot:4, fat:2, kcal:45, unit:'roll'},
+      src:'https://www.ketoconnect.net/low-carb-dinner-rolls/',
+      ings:['60 g harina de coco','30 g psyllium fino','6 claras','240 ml agua caliente','2 cdta polvo hornear','1 cdta sal','1 cda vinagre'],
+      steps:['Mezcla secos.','Agrega vinagre y claras; añade agua caliente','Forma 10–12 y hornea 175 °C 20–25 min.'],
+      tips:'Si el interior queda húmedo, hornea 3–5 min extra.'
+    },
+    {
+      id:'90s-bun', cat:'buns', title:'Pan de hamburguesa 90 segundos', subtitle:'micro + dorado',
+      tags:['exprés','1 porción','psyllium'],
+      macros:{net:3, prot:8, fat:20, kcal:248, unit:'pan'},
+      src:'https://www.ruled.me/90-second-keto-bread/',
+      ings:['1 huevo L','1 cda harina de almendra','1 cda psyllium','1/4 cdta polvo hornear','1/4 cdta cremor (opc.)','1 cda mantequilla derretida','1 cda caldo o agua'],
+      steps:['Mezcla en taza engrasada.','Micro 60–75 s, desmolda.','Abre y dora en sartén.'],
+      tips:'Taza ancha = mejor forma de “bun”.'
+    },
+    {
+      id:'hamb-buns-fathead', cat:'buns', title:'Buns de hamburguesa (mezcla coco+almendra)', subtitle:'estilo Fathead',
+      tags:['burger','semillas','fácil'],
+      macros:{net:4, prot:14, fat:18, kcal:230, unit:'bun'},
+      src:'https://www.ketoconnect.net/keto-hamburger-buns/',
+      ings:['140 g harina de almendra','30 g harina de coco','170 g mozzarella','56 g queso crema','2 huevos','2 cdta polvo hornear','1/2 cdta sal','Sésamo'],
+      steps:['Funde quesos e integra secos.','Agrega huevos, forma 6 bollos.','190 °C 15–20 min.'],
+      tips:'Para miga más aireada, 1/4 cdta xantana.'
+    },
+    {
+      id:'naan-dd', cat:'flat', title:'Naan keto con mantequilla de ajo', subtitle:'Diet Doctor',
+      tags:['naan','psyllium','aromático'],
+      macros:{net:3, prot:6, fat:12, kcal:150, unit:'naan'},
+      src:'https://www.dietdoctor.com/recipes/keto-naan-bread-with-garlic-butter',
+      ings:['140 g harina de almendra','40 g psyllium','240 ml agua caliente','1 cdta sal','2 cdta polvo hornear','2 cda aceite','Ghee+ajo para pincelar'],
+      steps:['Secos + aceite.','Agua caliente hasta masa.','Estira y hornea/plancha; termina con mantequilla de ajo.'],
+      tips:'Sirve con curry o dips.'
+    },
+    {
+      id:'flat-pita-wy', cat:'flat', title:'Flatbread tipo pita', subtitle:'suave y flexible',
+      tags:['flatbread','pita','rápido'],
+      macros:{net:3, prot:6, fat:13, kcal:160, unit:'unidad'},
+      src:'https://www.wholesomeyum.com/keto-low-carb-flatbread-recipe/',
+      ings:['120 g harina de almendra','30 g psyllium','1 cdta polvo hornear','1/2 cdta sal','2 huevos','60 ml aceite','120–160 ml agua'],
+      steps:['Mezcla secos y líquidos.','Reposa 5 min, divide en 6.','Sartén 2–3 min por lado.'],
+      tips:'Pincha con tenedor para evitar burbujas grandes.'
+    },
+    {
+      id:'tortillas-dd', cat:'flat', title:'Tortillas low-carb', subtitle:'Diet Doctor',
+      tags:['tortilla','harina de coco','psyllium'],
+      macros:{net:3, prot:5, fat:20, kcal:250, unit:'tortilla (mediana)'},
+      src:'https://www.dietdoctor.com/recipes/low-carb-tortillas',
+      ings:['95 g harina de coco','40 g psyllium','1/2 cdta bicarb.','1/2 cdta sal','120 ml aceite de oliva','3 claras','350 ml agua caliente'],
+      steps:['Mezcla secos.','Incorpora aceite, claras y agua caliente.','Estira finas y cocina a la plancha.'],
+      tips:'Usa psyllium extra fino para elasticidad.'
+    },
+    {
+      id:'cloud-dd', cat:'flat', title:'Cloud bread / Oopsie', subtitle:'súper liviano',
+      tags:['sin harina','alto en proteína','sandwich'],
+      macros:{net:0.6, prot:3, fat:4, kcal:55, unit:'disco'},
+      src:'https://www.dietdoctor.com/recipes/low-carb-oopsie-bread',
+      ings:['3 huevos (separados)','60 g queso crema','1/4 cdta cremor o 1 cdta limón','Pizca de sal'],
+      steps:['Claras a picos con cremor.','Yemas+queso+sal; une en 3 tandas.','160 °C 20–25 min.'],
+      tips:'Enfriar 10 min para que asiente.'
+    },
+    {
+      id:'naan-gnom', cat:'flat', title:'Naan esponjoso (gnom-gnom)', subtitle:'puffy',
+      tags:['xantana','puffy','sartén'],
+      macros:{net:3, prot:6, fat:12, kcal:160, unit:'unidad'},
+      src:'https://www.gnom-gnom.com/gluten-free-paleo-keto-naan/',
+      ings:['96 g harina de almendra','24 g harina de coco','2 cdta xantana','1 cdta polvo hornear','1/4 cdta sal','2 cdta vinagre','1 huevo','15–20 ml agua','Ghee p/plancha'],
+      steps:['Mezcla secos; añade huevo, vinagre y agua.','Reposa 30 min.','Plancha 2–3 min por lado.'],
+      tips:'No te saltes el reposo: activa la xantana.'
+    },
+    {
+      id:'flat-med-dd', cat:'flat', title:'Flatbread mediterráneo', subtitle:'romero & oliva',
+      tags:['romero','bandeja','snack'],
+      macros:{net:3, prot:6, fat:13, kcal:170, unit:'porción'},
+      src:'https://www.dietdoctor.com/recipes/keto-flatbread',
+      ings:['140 g harina de almendra','30–40 g psyllium','1 cdta sal','Pimienta','2–3 cda aceite','240 ml agua caliente','1 cdta romero'],
+      steps:['Secos + aceite.','Agua caliente, extiende 1 cm.','200 °C 15–20 min.'],
+      tips:'Corta en bastones para dips.'
+    },
+    {
+      id:'focaccia-dd', cat:'focaccia', title:'Focaccia ajo-romero', subtitle:'base rápida',
+      tags:['fathead','aromática','horno'],
+      macros:{net:2.5, prot:8, fat:14, kcal:170, unit:'porción (1/10)'},
+      src:'https://www.dietdoctor.com/recipes/keto-garlic-bread',
+      ings:['180 g mozzarella','56 g queso crema','120 g harina de almendra','1 huevo','1 cdta polvo hornear','1/2 cdta sal','Mantequilla+ajo+romero'],
+      steps:['Funde quesos e integra harina y huevo.','Extiende en molde; 200 °C 12–15 min.','Pinta con mantequilla de ajo y hornea 8–10 min más.'],
+      tips:'Pincha la masa para evitar burbujas.'
+    },
+    {
+      id:'focaccia-adidaf', cat:'focaccia', title:'Focaccia esponjosa (ADIDAF)', subtitle:'miga aireada',
+      tags:['almendra+coco','romero','suave'],
+      macros:{net:2.5, prot:6, fat:13, kcal:160, unit:'porción'},
+      src:'https://alldayidreamaboutfood.com/keto-focaccia-bread/',
+      ings:['200 g harina de almendra','30 g harina de coco','10 g polvo hornear','1 cdta sal','4 huevos','120 ml aceite de oliva','120–150 ml leche de almendra','Romero','Sal en escamas'],
+      steps:['Mezcla secos y líquidos hasta masa espesa.','Vierte, haz hoyuelos, añade romero y sal.','175 °C 25–35 min.'],
+      tips:'Enfriar 15 min antes de cortar.'
+    },
+    {
+      id:'zucchini-adidaf', cat:'quick', title:'Pan de calabacín (zucchini bread)', subtitle:'ADIDAF',
+      tags:['quick bread','húmedo','con canela'],
+      macros:{net:3.5, prot:6, fat:15, kcal:180, unit:'rebanada (1/16)'},
+      src:'https://alldayidreamaboutfood.com/low-carb-zucchini-bread/',
+      ings:['220 g harina de almendra','30 g harina de coco','2 cdta polvo hornear','1 cdta canela','Pizca sal','3 huevos','100 g eritritol/alulosa','90 g mantequilla derretida','200–220 g calabacín exprimido','Chips choco sin azúcar (opc.)'],
+      steps:['Secos + endulzante.','Añade huevos y mantequilla.','Incorpora calabacín; 175 °C 55–65 min.'],
+      tips:'Exprime bien el calabacín para evitar miga densa.'
+    },
+    {
+      id:'pumpkin-wy', cat:'quick', title:'Pan de calabaza (pumpkin bread)', subtitle:'Wholesome Yum',
+      tags:['otoñal','tierno','aromático'],
+      macros:{net:3, prot:6, fat:14, kcal:170, unit:'rebanada (1/16)'},
+      src:'https://www.wholesomeyum.com/keto-pumpkin-bread/',
+      ings:['224 g harina de almendra','1 cdta polvo de hornear','Especias pumpkin','3 huevos','180 g puré de calabaza 100%','100 g eritritol/alulosa','60 ml aceite','1 cdta vainilla','Pizca sal'],
+      steps:['Secos + endulzante.','Añade huevos, puré, aceite y vainilla.','Molde; 175 °C 45–55 min.'],
+      tips:'No abras el horno antes de 40 min.'
+    },
+    {
+      id:'banana-wy', cat:'quick', title:'“Banana” bread keto', subtitle:'sin banana real',
+      tags:['sabor banana','dulce','tostar y mantequilla'],
+      macros:{net:3.5, prot:6, fat:15, kcal:180, unit:'rebanada'},
+      src:'https://www.wholesomeyum.com/keto-banana-bread/',
+      ings:['Harina de almendra (base similar a pumpkin)','Harina de coco (pequeña porción)','Huevos','Endulzante','Mantequilla','Extracto de banana sin azúcar','Polvo de hornear','Sal'],
+      steps:['Mezcla secos + grasa + huevos.','Aromatiza con extracto de banana.','Horneado estándar de quick bread.'],
+      tips:'El extracto aporta sabor sin carbs de banana.'
+    },
+    {
+      id:'cornbread-wy', cat:'quick', title:'Cornbread keto (estilo “maíz”)', subtitle:'Wholesome Yum',
+      tags:['acompañamiento','textura cake','sin maíz'],
+      macros:{net:3, prot:6, fat:15, kcal:180, unit:'cuadrado (1/12)'},
+      src:'https://www.wholesomeyum.com/keto-cornbread/',
+      ings:['Harina de almendra','Harina de coco','Huevos','Mantequilla','Endulzante','Polvo de hornear','Sal','(Truco de sabor tipo maíz según fuente)'],
+      steps:['Secos + húmedos.','Molde cuadrado.','Hornear hasta dorar.'],
+      tips:'Excelente con chili keto o sopas.'
+    },
+
+    /* === 2 extras para completar 20 === */
+    {
+      id:'chaffle-classic', cat:'buns', title:'Chaffle clásico (waffle-pan)', subtitle:'1–2 porciones',
+      tags:['wafflera','sándwich','exprés'],
+      macros:{net:1, prot:9, fat:12, kcal:150, unit:'chaffle'},
+      src:'https://www.wholesomeyum.com/what-is-a-chaffle-recipe/ ',
+      ings:['1 huevo L','1/2 taza mozzarella rallada','1 cda harina de almendra (opc. para más cuerpo)','Pizca de sal'],
+      steps:['Mezcla huevo + queso (y harina si usas).','Wafflera bien caliente 3–4 min.','Deja enfriar 2–3 min: mejora la textura.'],
+      tips:'Para burger, hazlos más gruesos y deja dorar extra.'
+    },
+    {
+      id:'soul-bread', cat:'buns', title:'Soul Bread (whey + queso crema)', subtitle:'pan de molde clásico low-carb',
+      tags:['muy popular','miga blanca','tostar'],
+      macros:{net:1.2, prot:5, fat:6, kcal:85, unit:'rebanada'},
+      src:'https://www.ibreatheimhungry.com/low-carb-soul-bread/ ',
+      ings:['170 g queso crema a temp. ambiente','6 huevos','60 g mantequilla derretida','60 g aislado de suero (whey) sin sabor','1 cdta polvo de hornear','1/2 cdta sal','Opcional: hierbas secas, ajo en polvo'],
+      steps:['Bate queso crema con mantequilla; añade huevos uno a uno.','Incorpora whey, polvos y sal.','Molde; 175 °C 35–45 min. Enfriar completamente.'],
+      tips:'Tostar intensifica sabor y firmeza para sándwiches.'
+    },
+  ];
+
+  // === RENDER ===
+  const grid = document.getElementById('grid');
+  const modal = document.getElementById('modal');
+  const mTitle = document.getElementById('m-title');
+  const mIngs = document.getElementById('m-ings');
+  const mSteps = document.getElementById('m-steps');
+  const mTips = document.getElementById('m-tips');
+  const mMacros = document.getElementById('m-macros');
+
+  function macroChips(m){
+    const fx = (v)=> (Math.round(v*10)/10).toString().replace('.',',');
+    return [
+      `<span class="chip"><strong>${fx(m.net)}</strong> g net</span>`,
+      `<span class="chip"><strong>${fx(m.prot)}</strong> g prot</span>`,
+      `<span class="chip"><strong>${fx(m.fat)}</strong> g grasa</span>`,
+      `<span class="chip"><strong>${Math.round(m.kcal)}</strong> kcal</span>`,
+      `<span class="chip">${m.unit}</span>`
+    ].join('');
+  }
+
+  function card(r){
+    const el = document.createElement('article');
+    el.className = `card item ${r.cat}`;
+    el.dataset.title = (r.title + ' ' + r.subtitle + ' ' + r.tags.join(' ')).toLowerCase();
+    el.innerHTML = `
+      <div class="cover"><span class="badge">${r.subtitle || ''}</span></div>
+      <div class="content">
+        <h3 class="title">${r.title}</h3>
+        <div class="tags">${r.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+        <div class="macros">${macroChips(r.macros)}</div>
+        <div class="btns">
+          <button class="btn" data-open="${r.id}">Ver receta</button>
+          <button class="btn outline" data-print="${r.id}">Imprimir</button>
+        </div>
+      </div>`;
+    grid.appendChild(el);
+
+    el.querySelector('[data-open]').addEventListener('click', ()=> openModal(r));
+    const printBtn = el.querySelector('[data-print]');
+    if(printBtn){ printBtn.addEventListener('click', ()=> printRecipe(r)); }
+  }
+
+  function openModal(r){
+    mTitle.textContent = r.title;
+    mIngs.innerHTML = r.ings.map(i=>`<li>${i}</li>`).join('');
+    mSteps.innerHTML = r.steps.map(s=>`<li>${s}</li>`).join('');
+    mTips.textContent = r.tips || '';
+    mMacros.innerHTML = macroChips(r.macros);
+    modal.showModal();
+  }
+
+  function printRecipe(r){
+    const w = window.open('', '_blank');
+    if(!w){ alert('Por favor habilita las ventanas emergentes para imprimir.'); return; }
+
+    // Logo embebido (SVG inline, estilo Keto Air Fryer 360°)
+    const brand = `
+      <svg class="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Keto Air Fryer 360°">
+        <rect rx="12" ry="12" width="100" height="100" fill="#fff7e5" stroke="#f2e3cc"/>
+        <text x="50" y="34" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="28" fill="#ff2e92">KETO</text>
+        <text x="50" y="56" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="14" fill="#222" opacity="0.9">AIR FRYER</text>
+        <text x="50" y="82" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="26" fill="#a3e635">360°</text>
+      </svg>`;
+
+    const css = `
+      @page{ margin: 18mm 14mm; }
+      *{ -webkit-print-color-adjust: exact; print-color-adjust: exact }
+      body{ font-family: system-ui,-apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif; color:#2d2a26; }
+      .p-header{ position: fixed; top:0; left:0; right:0; display:flex; align-items:center; gap:12px; padding:8px 0 10px; border-bottom:1px solid #eee; }
+      .brand-logo{ width:38px; height:38px }
+      .hgroup h1{ margin:0; font-size:22px }
+      .hgroup .sub{ color:#6c5a45; margin:2px 0 0; font-size:13.5px }
+      .wrap{ margin-top:74px; }
+      h2{ margin:18px 0 8px; font-size:16px }
+      ul,ol{ margin:8px 0 0 20px }
+      .chips{ margin-top:6px }
+      .chips span{ display:inline-block; margin:4px 6px 0 0; padding:4px 8px; border:1px solid #ddd; border-radius:8px; font-size:12px }
+      .p-footer{ position: fixed; bottom:0; left:0; right:0; text-align:right; color:#8a847c; font-size:12px; padding-top:6px; border-top:1px solid #eee }
+      .p-footer::after{ content: "Página " counter(page) " de " counter(pages); }
+    `;
+
+    const m = r.macros || {net:'-', prot:'-', fat:'-', kcal:'-', unit:''};
+    const chips = `<span><strong>${m.net}</strong> g net</span><span><strong>${m.prot}</strong> g prot</span><span><strong>${m.fat}</strong> g grasa</span><span><strong>${Math.round(m.kcal||0)}</strong> kcal</span><span>${m.unit||''}</span>`;
+
+    const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>${r.title}</title>
+      <style>${css}</style></head><body>
+      <div class="p-header">${brand}<div class="hgroup"><h1>${r.title}</h1>${r.subtitle?`<div class=\"sub\">${r.subtitle}</div>`:''}</div></div>
+      <div class="wrap">
+        <div class="chips">${chips}</div>
+        <h2>Ingredientes</h2>
+        <ul>${(r.ings||[]).map(i=>`<li>${i}</li>`).join('')}</ul>
+        <h2>Instrucciones</h2>
+        <ol>${(r.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol>
+        ${r.tips?`<h2>Tips</h2><div>${r.tips}</div>`:''}
+      </div>
+      <div class="p-footer"></div>
+      <script>window.onload = function(){ window.print(); }<\/script>
+      </body></html>`;
+
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  }
+
+  RECIPES.forEach(card);
+
+  // === PRINT BUTTON ===
+  // === GUÍA: abrir, cerrar, imprimir ===
+  const btnGuide = document.getElementById('btnGuide');
+  const guideDlg = document.getElementById('guideDlg');
+  const guideBody = document.getElementById('guideBody');
+  const gClose = document.getElementById('gClose');
+  const gPrint = document.getElementById('gPrint');
+  const guideTpl = document.getElementById('guideTpl');
+
+  function ensureGuide(){ if(guideBody && guideTpl && !guideBody.innerHTML.trim()){ guideBody.innerHTML = guideTpl.innerHTML; } }
+  if(btnGuide){ btnGuide.addEventListener('click', ()=>{ ensureGuide(); guideDlg.showModal(); }); }
+  if(gClose){ gClose.addEventListener('click', ()=> guideDlg.close()); }
+  if(gPrint){ gPrint.addEventListener('click', ()=>{
+    ensureGuide();
+    const w = window.open('', '_blank');
+    if(!w){ alert('Habilita ventanas emergentes para imprimir.'); return; }
+    const css = `@page{margin:16mm 14mm} body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;color:#2d2a26} h2,h3,h4{margin:.6em 0 .3em} ul{margin:.2em 0 .6em 1.2em} table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:8px} th{background:#fff7e5}`;
+    w.document.open();
+    w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Fundamentos & Guía</title><style>${css}</style></head><body>`);
+    w.document.write(`<h2>Fundamentos & Guía de Panes Keto</h2>`);
+    w.document.write(guideBody.innerHTML);
+    w.document.write(`<script>window.onload=function(){window.print()}<\/script>`);
+    w.document.close();
+  }); }
+
+</script>
+</body>
+</html>
