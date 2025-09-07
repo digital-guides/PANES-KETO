@@ -74,6 +74,15 @@
             border: 2px dashed rgba(255,255,255,0.3);
         }
     </style>
+      <style>
+    @media print {
+      * { box-shadow: none !important; }
+      body { background: #fff !important; }
+      .hero-gradient, #guide-tab, .photo-placeholder, .recipe-number { display: none !important; }
+      .recipe-card { break-inside: avoid; border: 1px solid #eee; margin: 0 0 12mm 0; }
+      .macro-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
 </head>
 <body class="bg-amber-50 font-['Inter']">
     <!-- Header Hero Section -->
@@ -2913,5 +2922,62 @@
             });
         });
     </script>
+    <script>
+  (function () {
+    const guideBtn = document.getElementById('guide-tab');
+    const modal = document.getElementById('guide-modal');
+    const closeBtn = document.getElementById('close-guide');
+    const recipeCountEl = document.getElementById('recipe-count');
+    const recipes = document.querySelectorAll('.recipe-card');
+
+    // 1) Contador dinámico (actualiza "Total" automáticamente)
+    if (recipeCountEl) recipeCountEl.textContent = recipes.length;
+
+    // 2) Accesibilidad y control del modal
+    function openModal() {
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      modal.setAttribute('aria-hidden', 'false');
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+
+      // guardar foco previo y mover el foco a un elemento del modal
+      modal.dataset.prevFocus = document.activeElement ? (document.activeElement.id || '') : '';
+      const focusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      (focusable || closeBtn || modal).focus();
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      if (!modal) return;
+      modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      const prevId = modal.dataset.prevFocus;
+      if (prevId) {
+        const prevEl = document.getElementById(prevId);
+        if (prevEl) prevEl.focus();
+      } else if (guideBtn) {
+        guideBtn.focus();
+      }
+    }
+
+    guideBtn?.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+
+    // Cerrar con clic fuera del contenido
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // Cerrar con ESC
+    document.addEventListener('keydown', (e) => {
+      if (!modal || modal.classList.contains('hidden')) return;
+      if (e.key === 'Escape') closeModal();
+    });
+  })();
+</script>
+
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97b2593cb66c7b8f',t:'MTc1NzIwNzY1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
